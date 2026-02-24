@@ -1,0 +1,6 @@
+Flask==2.3.3
+scapy
+speedtest-cli
+python-nmap
+netifaces
+psutil

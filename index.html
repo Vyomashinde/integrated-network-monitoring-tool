@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Monitoring Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="bi bi-router-fill me-2"></i>Network Monitor
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#dashboard"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#latency"><i class="bi bi-graph-up me-1"></i>Latency</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#devices"><i class="bi bi-hdd-network me-1"></i>Devices</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#traffic"><i class="bi bi-activity me-1"></i>Traffic</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#bandwidth"><i class="bi bi-speedometer me-1"></i>Bandwidth</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#security"><i class="bi bi-shield-check me-1"></i>Security</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#system"><i class="bi bi-cpu me-1"></i>System</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <span class="navbar-text me-3">
+                        <small class="text-light">Status: <span id="connectionStatus" class="badge bg-success">Online</span></small>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="row mb-4">
+            <div class="col-12">
+                <div class="card border-primary shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="card-title mb-0"><i class="bi bi-speedometer2 me-2"></i>Dashboard Overview</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <div class="card h-100 border-info">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-router text-info" style="font-size: 2rem;"></i>
+                                        <h5 class="card-title">Network Status</h5>
+                                        <p class="card-text">Monitor your network health</p>
+                                        <button onclick="quickNetworkCheck()" class="btn btn-info btn-sm">Quick Check</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card h-100 border-success">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-hdd-network text-success" style="font-size: 2rem;"></i>
+                                        <h5 class="card-title">Device Count</h5>
+                                        <p class="card-text" id="deviceCount">Unknown</p>
+                                        <button onclick="discoverDevices()" class="btn btn-success btn-sm">Scan Network</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card h-100 border-warning">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-cpu text-warning" style="font-size: 2rem;"></i>
+                                        <h5 class="card-title">System Load</h5>
+                                        <p class="card-text" id="systemLoad">Loading...</p>
+                                        <button onclick="getSystemStats()" class="btn btn-warning btn-sm">Check Stats</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card h-100 border-danger">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-shield-check text-danger" style="font-size: 2rem;"></i>
+                                        <h5 class="card-title">Security Scan</h5>
+                                        <p class="card-text">Port & vulnerability check</p>
+                                        <button onclick="quickSecurityScan()" class="btn btn-danger btn-sm">Quick Scan</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tools Sections -->
+        <div class="row">
+            <!-- Network Diagnostics -->
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm" id="latency">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0"><i class="bi bi-graph-up me-2"></i>Network Latency & Connectivity</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">Test network latency, packet loss, and jitter to any host</p>
+                        <div class="input-group mb-3">
+                            <input type="text" id="latencyHost" class="form-control" placeholder="Enter IP address or hostname (e.g., google.com)" aria-label="Host">
+                            <button onclick="measureLatency()" class="btn btn-info" type="button" id="latencyBtn">
+                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                Test Latency
+                            </button>
+                        </div>
+                        <div id="latencyResult" class="result-container"></div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mt-3" id="bandwidth">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0"><i class="bi bi-speedometer me-2"></i>Internet Bandwidth Test</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">Measure your internet connection speed</p>
+                        <button onclick="testBandwidth()" class="btn btn-success" id="bandwidthBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            Start Speed Test
+                        </button>
+                        <div id="bandwidthResult" class="result-container mt-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Device & Network Discovery -->
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm" id="devices">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0"><i class="bi bi-hdd-network me-2"></i>LAN Device Discovery</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">Scan your local network for active devices</p>
+                        <button onclick="discoverDevices()" class="btn btn-primary" id="devicesBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            Discover Devices
+                        </button>
+                        <div id="devicesResult" class="result-container mt-3"></div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mt-3" id="interfaces">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="card-title mb-0"><i class="bi bi-ethernet me-2"></i>Network Interfaces</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">View your network interface information</p>
+                        <button onclick="getInterfaces()" class="btn btn-secondary" id="interfacesBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            Get Interfaces
+                        </button>
+                        <div id="interfacesResult" class="result-container mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Traffic Analysis -->
+        <div class="row" id="traffic">
+            <div class="col-12 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0"><i class="bi bi-activity me-2"></i>Network Traffic Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">Capture and analyze network packets in real-time</p>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <button onclick="startCapture()" class="btn btn-warning w-100" id="captureBtn">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                    <i class="bi bi-play-circle me-1"></i>Start Capture
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button onclick="getLogs()" class="btn btn-outline-warning w-100" id="logsBtn">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                    <i class="bi bi-list-ul me-1"></i>View Logs
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button onclick="clearLogs()" class="btn btn-outline-secondary w-100" id="clearBtn">
+                                    <i class="bi bi-x-circle me-1"></i>Clear Logs
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button onclick="getProtocolAnalysis()" class="btn btn-outline-warning w-100" id="protocolBtn">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                    <i class="bi bi-bar-chart me-1"></i>Protocol Analysis
+                                </button>
+                            </div>
+                        </div>
+                        <div id="logsResult" class="result-container mt-3"></div>
+                        <div id="protocolResult" class="result-container mt-3 d-none"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Tools -->
+        <div class="row" id="security">
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm" id="ports">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="card-title mb-0"><i class="bi bi-search me-2"></i>Port Scanning</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">Scan for open ports on a target host</p>
+                        <div class="input-group mb-3">
+                            <input type="text" id="scanHost" class="form-control" placeholder="Enter IP address or hostname" aria-label="Host">
+                            <button onclick="scanPorts()" class="btn btn-danger" type="button" id="scanBtn">
+                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                Scan Ports
+                            </button>
+                        </div>
+                        <div id="scanResult" class="result-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm" id="dns">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0"><i class="bi bi-globe me-2"></i>DNS Lookup</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">Resolve domain names to IP addresses</p>
+                        <div class="input-group mb-3">
+                            <input type="text" id="dnsDomain" class="form-control" placeholder="Enter domain name (e.g., google.com)" aria-label="Domain">
+                            <button onclick="dnsLookup()" class="btn btn-info" type="button" id="dnsBtn">
+                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                Lookup
+                            </button>
+                        </div>
+                        <div id="dnsResult" class="result-container"></div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mt-3" id="traceroute">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="card-title mb-0"><i class="bi bi-diagram-3 me-2"></i>Traceroute</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">Map the network path to a destination</p>
+                        <div class="input-group mb-3">
+                            <input type="text" id="traceHost" class="form-control" placeholder="Enter IP address or hostname" aria-label="Host">
+                            <button onclick="traceroute()" class="btn btn-dark" type="button" id="traceBtn">
+                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                Trace Route
+                            </button>
+                        </div>
+                        <div id="traceResult" class="result-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Tools -->
+        <div class="row" id="system">
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm" id="stats">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0"><i class="bi bi-cpu me-2"></i>System Statistics</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">Monitor system performance and network I/O</p>
+                        <button onclick="getSystemStats()" class="btn btn-success" id="statsBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            Get System Stats
+                        </button>
+                        <div id="statsResult" class="result-container mt-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="card-title mb-0"><i class="bi bi-check-circle me-2"></i>Result Verification</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">Verify results with system ping command</p>
+                        <div class="input-group mb-3">
+                            <input type="text" id="verifyHost" class="form-control" placeholder="Enter IP address or hostname" aria-label="Host">
+                            <button onclick="verifyResult()" class="btn btn-secondary" type="button" id="verifyBtn">
+                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                Verify
+                            </button>
+                        </div>
+                        <div id="verifyResult" class="result-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light mt-5 py-3">
+        <div class="container text-center">
+            <small>Network Monitoring Tool | Built with Flask & Python | Real-time network analysis</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
